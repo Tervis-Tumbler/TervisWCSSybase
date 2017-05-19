@@ -23,6 +23,22 @@ order by ts DESC
     $ConveyorScaleNumberOfUniqueWeights
 }
 
+function Get-TervisWCSTervisContentsLabelsAndTervisSalesChannelXRefFileName {
+    param (
+        [Parameter(Mandatory)]$PasswordID
+    )
+    $Query = @"
+select * from  TervisContentsLabels;
+
+select * from TervisSalesChannelXRef;
+"@
+
+    $SybaseDatabaseEntryDetails = Get-PasswordstateSybaseDatabaseEntryDetails -PasswordID $PasswordID
+    $ConnectionString = $SybaseDatabaseEntryDetails | ConvertTo-SQLAnywhereConnectionString
+
+    Invoke-SQLAnywhereSQL -ConnectionString $ConnectionString -SQLCommand $Query -DatabaseEngineClassMapName SQLAnywhere -ConvertFromDataRow
+}
+
 function Update-TervisWCSTervisContentsLabelsAndTervisSalesChannelXRefFileName {
     param (
         [Parameter(Mandatory)]$ComputerName,
