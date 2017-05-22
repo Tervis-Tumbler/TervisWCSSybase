@@ -174,3 +174,13 @@ function Invoke-WCSSQL {
     $ConnectionString = $SybaseDatabaseEntryDetails | ConvertTo-SQLAnywhereConnectionString
     Invoke-SQLAnywhereSQL -ConnectionString $ConnectionString -SQLCommand $Query -DatabaseEngineClassMapName SQLAnywhere -ConvertFromDataRow
 }
+
+function Get-WCSSQLConnectShipShipmentMSNMax {
+    param (
+        [Parameter(Mandatory)]$EnvironmentName
+    )
+    process {
+        Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName WCSConnectShipMSNMax |
+        Select -ExpandProperty MSNMax
+    }
+}
