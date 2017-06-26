@@ -59,6 +59,46 @@ set filename = replace(filename, '$OldComputerName', '$ComputerName');
     Invoke-SQLAnywhereSQL -ConnectionString $ConnectionString -SQLCommand $Query -DatabaseEngineClassMapName SQLAnywhere -ConvertFromDataRow
 }
 
+function Update-WCSTableColumnSearchAndReplaceString {
+    param (
+        [Parameter(Mandatory)]$Table,
+        [Parameter(Mandatory)]$Column,
+        [Parameter(Mandatory)]$SearchString,
+        [Parameter(Mandatory)]$ReplaceString,
+        [Parameter(Mandatory)]$PasswordID
+    )
+    $Query = @"
+update $Table
+set $Column = replace($Column, '$SearchString', '$ReplaceString');
+"@
+
+    $SybaseDatabaseEntryDetails = Get-PasswordstateSybaseDatabaseEntryDetails -PasswordID $PasswordID
+    $ConnectionString = $SybaseDatabaseEntryDetails | ConvertTo-SQLAnywhereConnectionString
+
+    Invoke-SQLAnywhereSQL -ConnectionString $ConnectionString -SQLCommand $Query -DatabaseEngineClassMapName SQLAnywhere -ConvertFromDataRow
+}
+
+function Update-TervisWCSReferencesToComputerName {
+    param (
+        [Parameter(Mandatory)]$ComputerName,
+        $OldComputerName,
+        [Parameter(Mandatory)]$PasswordID
+    )
+
+    $Parameters = @{
+        SearchString = $OldComputerName
+        ReplaceString = $ComputerName
+        PasswordID = $PasswordID
+    }
+
+    Update-WCSTableColumnSearchAndReplaceString -Table TervisContentsLabels -Column filename @Parameters
+    Update-WCSTableColumnSearchAndReplaceString -Table TervisSalesChannelXRef -Column filename @Parameters
+    Update-WCSTableColumnSearchAndReplaceString -Table TervisCustomer -Column fullGS1Format @Parameters
+    Update-WCSTableColumnSearchAndReplaceString -Table TervisCustomer -Column miniContents @Parameters
+    Update-WCSTableColumnSearchAndReplaceString -Table TervisCustomer -Column fullContents @Parameters
+    Update-WCSTableColumnSearchAndReplaceString -Table TervisCustomer -Column orderPackSlip @Parameters
+}
+
 function Set-TervisWCSSystemParameterCS_Server {
     param (
         [Parameter(Mandatory)]$CS_Server,
