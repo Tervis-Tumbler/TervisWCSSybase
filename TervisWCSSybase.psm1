@@ -147,7 +147,7 @@ SELECT * FROM "qc"."Equipment"
 
     if ($PrintEngineOrientationRelativeToLabel -eq "Top") {
         $WCSEquipment |
-        where id -Match Shipping |
+        where {$_.id -Match "Shipping" -or $_.id -Match "PrintApply"} |
         where id -NotMatch _PL
     } elseif ($PrintEngineOrientationRelativeToLabel -eq "Bottom") {
         $WCSEquipment |
