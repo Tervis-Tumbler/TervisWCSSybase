@@ -224,3 +224,44 @@ function Get-WCSSQLConnectShipShipmentMSNMax {
         Select -ExpandProperty MSNMax
     }
 }
+
+function Remove-TervisWCSSybaseConnectionsNotFromShipping {
+    $ShippingComputers = Get-ADComputer -Filter {Name -like "Ship*"}
+    $DNSResponsesForShippingComputers = $ShippingComputers | % { Resolve-DnsName -Name $_.name }
+
+    $SystemsAllowedToConnectToWCSSybase = @"
+p-weblogic01
+ScheduledTasks
+PRD-WCSApp01
+PRD-Progis01
+PRD-Bartender01
+"@ -split "`r`n"
+    
+    $IPAddressesOfSystemsAllowedToConnectToWCSSybase = foreach ($Name in $SystemsAllowedToConnectToWCSSybase) {
+         Resolve-DnsName -Name $Name |
+         Select-Object -ExpandProperty IPAddress
+    }
+
+    $IPAddressesNotToRemove = $DNSResponsesForShippingComputers.IPAddress + $IPAddressesOfSystemsAllowedToConnectToWCSSybase
+
+while ($true) {
+    $Connections = Get-TervisSQLAnywhereConnection -EnvironmentName production
+
+    $ConnectionsToRemove = $Connections | 
+    where {$_.NodeAddr } | 
+    where NodeAddr -ne "NA" |
+    where NodeAddr -NotIn $IPAddressesNotToRemove
+
+    $ConnectionsToRemove
+    $ConnectionsToRemove | ConvertTo-Json | Out-File -Append $HOME\ConnectionsToRemove.Json -NoNewline -Encoding ascii
+    $ConnectionsToRemove | % { Remove-TervisSQLAnywhereConnection -EnvironmentName Production -ID $_.Number}
+    sleep 2
+
+}
+
+function Get-TervisWCSSybaseConnectionsBlocked {
+    $Connections = Get-TervisSQLAnywhereConnection -EnvironmentName production 
+    
+    $Connections |
+    Where BlockedOn -ne 0
+}
