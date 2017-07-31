@@ -265,3 +265,21 @@ function Get-TervisWCSSybaseConnectionsBlocked {
     $Connections |
     Where BlockedOn -ne 0
 }
+
+function Enable-WCSConnectShipCarrierXrefSmartPostFlagsForPrintapply {
+    param (
+        [Parameter(Mandatory)]$EnvironmentName
+    )
+    process {
+        Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName Enable-WCSConnectShipCarrierXrefSmartPostFlagsForPrintapply
+    }
+}
+
+function Disable-WCSConnectShipCarrierXrefSmartPostFlagsForPrintapply {
+    param (
+        [Parameter(Mandatory)]$EnvironmentName
+    )
+    process {
+        Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName Disable-WCSConnectShipCarrierXrefSmartPostFlagsForPrintapply
+    } 
+}
