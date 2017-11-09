@@ -243,20 +243,22 @@ PRD-Bartender01
     }
 
     $IPAddressesNotToRemove = $DNSResponsesForShippingComputers.IPAddress + $IPAddressesOfSystemsAllowedToConnectToWCSSybase
+    #$IPAddressesNotToRemove = $IPAddressesOfSystemsAllowedToConnectToWCSSybase + "10.55.1.92"
 
-while ($true) {
-    $Connections = Get-TervisSQLAnywhereConnection -EnvironmentName production
+    while ($true) {
+        $Connections = Get-TervisSQLAnywhereConnection -EnvironmentName production
 
-    $ConnectionsToRemove = $Connections | 
-    where {$_.NodeAddr } | 
-    where NodeAddr -ne "NA" |
-    where NodeAddr -NotIn $IPAddressesNotToRemove
+        $ConnectionsToRemove = $Connections | 
+        where {$_.NodeAddr } | 
+        where NodeAddr -ne "NA" |
+        where NodeAddr -NotIn $IPAddressesNotToRemove
 
-    $ConnectionsToRemove
-    $ConnectionsToRemove | ConvertTo-Json | Out-File -Append $HOME\ConnectionsToRemove.Json -NoNewline -Encoding ascii
-    $ConnectionsToRemove | % { Remove-TervisSQLAnywhereConnection -EnvironmentName Production -ID $_.Number}
-    sleep 2
+        $ConnectionsToRemove
+        $ConnectionsToRemove | ConvertTo-Json | Out-File -Append $HOME\ConnectionsToRemove.Json -NoNewline -Encoding ascii
+        $ConnectionsToRemove | % { Remove-TervisSQLAnywhereConnection -EnvironmentName Production -ID $_.Number}
+        sleep 2
 
+    }
 }
 
 function Get-TervisWCSSybaseConnectionsBlocked {
@@ -282,4 +284,12 @@ function Disable-WCSConnectShipCarrierXrefSmartPostFlagsForPrintapply {
     process {
         Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName Disable-WCSConnectShipCarrierXrefSmartPostFlagsForPrintapply
     } 
+}
+
+function Invoke-SQLAnywhereProvision {
+    param (
+        $EnvironmentName
+    )
+    Invoke-ApplicationProvision -ApplicationName "SQL Anywhere" -EnvironmentName $EnvironmentName
+    $Nodes = Get-TervisApplicationNode -ApplicationName "SQL Anywhere" -EnvironmentName $EnvironmentName   
 }
