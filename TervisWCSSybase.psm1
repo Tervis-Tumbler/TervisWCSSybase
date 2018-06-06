@@ -165,42 +165,47 @@ function Get-WCSDatabaseName {
 function Get-WCSWorkOrderRoute {
     param (
         [Parameter(Mandatory)]$EnvironmentName,
+        [Parameter(Mandatory)]$WCSJavaApplicationGitRepositoryPath,
         $WorkOrderId = "1101-9774649-0"
     )
-    Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName WCSWorkOrderRoute -TemplateVariables @{WorkOrderId=$WorkOrderId}
+    Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName WCSWorkOrderRoute -TemplateVariables @{WorkOrderId=$WorkOrderId} -WCSJavaApplicationGitRepositoryPath $WCSJavaApplicationGitRepositoryPath
 }
 
 function Get-WCSWorkOrderOrder {
     param (
         [Parameter(Mandatory)]$EnvironmentName,
+        [Parameter(Mandatory)]$WCSJavaApplicationGitRepositoryPath,
         $WorkOrderId = "1101-9774649-0"
     )
-    Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName WCSWorkOrderOrder -TemplateVariables @{WorkOrderId=$WorkOrderId}
+    Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName WCSWorkOrderOrder -TemplateVariables @{WorkOrderId=$WorkOrderId} -WCSJavaApplicationGitRepositoryPath $WCSJavaApplicationGitRepositoryPath
 }
 
 function Get-WCSWorkOrderLine {
     param (
         [Parameter(Mandatory)]$EnvironmentName,
+        [Parameter(Mandatory)]$WCSJavaApplicationGitRepositoryPath,
         $WorkOrderId = "1101-9774649-0"
     )
-    Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName WCSWorkOrderLine -TemplateVariables @{WorkOrderId=$WorkOrderId}
+    Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName WCSWorkOrderLine -TemplateVariables @{WorkOrderId=$WorkOrderId} -WCSJavaApplicationGitRepositoryPath $WCSJavaApplicationGitRepositoryPath
 }
 
 function Get-WCSCartonRouteStatusesForWorkOrderLineOperations {
     param (
         [Parameter(Mandatory)]$EnvironmentName,
+        [Parameter(Mandatory)]$WCSJavaApplicationGitRepositoryPath,
         $Top = 10
     )
-    Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName WCSCartonRouteStatusesForWorkOrderLineOperations -TemplateVariables @{Top=$Top}    
+    Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName WCSCartonRouteStatusesForWorkOrderLineOperations -TemplateVariables @{Top=$Top} -WCSJavaApplicationGitRepositoryPath $WCSJavaApplicationGitRepositoryPath
 }
 
 function Invoke-WCSSQLUsingTemplate {
     param (
         [Parameter(Mandatory)]$EnvironmentName,
         [Parameter(Mandatory)]$TemplateName,
+        [Parameter(Mandatory)]$WCSJavaApplicationGitRepositoryPath,
         $TemplateVariables
     )
-    $Query = Invoke-ProcessTemplateFile -TemplateFile "$(Get-WCSJavaApplicationGitRepositoryPath)\SQL\$TemplateName.sql.pstemplate" -TemplateVariables $TemplateVariables
+    $Query = Invoke-ProcessTemplateFile -TemplateFile "$WCSJavaApplicationGitRepositoryPath\SQL\$TemplateName.sql.pstemplate" -TemplateVariables $TemplateVariables
     Invoke-WCSSQL -EnvironmentName $EnvironmentName -Query $Query
 }
 
@@ -217,10 +222,11 @@ function Invoke-WCSSQL {
 
 function Get-WCSSQLConnectShipShipmentMSNMax {
     param (
-        [Parameter(Mandatory)]$EnvironmentName
+        [Parameter(Mandatory)]$EnvironmentName,
+        [Parameter(Mandatory)]$WCSJavaApplicationGitRepositoryPath
     )
     process {
-        Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName WCSConnectShipMSNMax |
+        Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName WCSConnectShipMSNMax -WCSJavaApplicationGitRepositoryPath $WCSJavaApplicationGitRepositoryPath |
         Select -ExpandProperty MSNMax
     }
 }
@@ -270,19 +276,21 @@ function Get-TervisWCSSybaseConnectionsBlocked {
 
 function Enable-WCSConnectShipCarrierXrefSmartPostFlagsForPrintapply {
     param (
-        [Parameter(Mandatory)]$EnvironmentName
+        [Parameter(Mandatory)]$EnvironmentName,
+        [Parameter(Mandatory)]$WCSJavaApplicationGitRepositoryPath
     )
     process {
-        Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName Enable-WCSConnectShipCarrierXrefSmartPostFlagsForPrintapply
+        Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName Enable-WCSConnectShipCarrierXrefSmartPostFlagsForPrintapply -WCSJavaApplicationGitRepositoryPath $WCSJavaApplicationGitRepositoryPath
     }
 }
 
 function Disable-WCSConnectShipCarrierXrefSmartPostFlagsForPrintapply {
     param (
-        [Parameter(Mandatory)]$EnvironmentName
+        [Parameter(Mandatory)]$EnvironmentName,
+        [Parameter(Mandatory)]$WCSJavaApplicationGitRepositoryPath
     )
     process {
-        Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName Disable-WCSConnectShipCarrierXrefSmartPostFlagsForPrintapply
+        Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName Disable-WCSConnectShipCarrierXrefSmartPostFlagsForPrintapply -WCSJavaApplicationGitRepositoryPath $WCSJavaApplicationGitRepositoryPath
     } 
 }
 
