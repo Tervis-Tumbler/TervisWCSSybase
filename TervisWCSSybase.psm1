@@ -222,9 +222,11 @@ function Invoke-WCSSQL {
 
 function Get-WCSSQLConnectShipShipmentMSNMax {
     param (
-        [Parameter(Mandatory)]$EnvironmentName,
-        [Parameter(Mandatory)]$WCSJavaApplicationGitRepositoryPath
+        [Parameter(Mandatory)]$EnvironmentName
     )
+    begin {
+        $WCSJavaApplicationGitRepositoryPath = (Get-WCSJavaApplicationGitRepositoryPath)
+    }
     process {
         Invoke-WCSSQLUsingTemplate -EnvironmentName $EnvironmentName -TemplateName WCSConnectShipMSNMax -WCSJavaApplicationGitRepositoryPath $WCSJavaApplicationGitRepositoryPath |
         Select -ExpandProperty MSNMax
