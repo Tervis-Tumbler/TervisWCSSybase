@@ -303,3 +303,11 @@ function Invoke-SQLAnywhereProvision {
     Invoke-ApplicationProvision -ApplicationName "SQL Anywhere" -EnvironmentName $EnvironmentName
     $Nodes = Get-TervisApplicationNode -ApplicationName "SQL Anywhere" -EnvironmentName $EnvironmentName   
 }
+
+function Get-WCSShipDate {
+    if (-not $Script:WCSShipDateQuery) {
+        $Script:WCSShipDateQuery = Get-TervisPasswordstatePassword -Guid 0c8717f5-1d26-4394-aa0a-089febd45a1a |
+        Select-Object -ExpandProperty Description    
+    }
+    Invoke-WCSSQL -EnvironmentName Production -Query $Script:WCSShipDateQuery
+}
