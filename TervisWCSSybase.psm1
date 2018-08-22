@@ -10,11 +10,7 @@ FROM "qc"."ScaleLog"
 order by ts DESC 
 "@
 
-    $WCSEnvironment = Get-WCSEnvironmentState -EnvironmentName Production    
-    $SybaseDatabaseEntryDetails = Get-PasswordstateSybaseDatabaseEntryDetails -GUID $WCSEnvironment.SybaseQCUserPasswordEntryGUID
-    $ConnectionString = $SybaseDatabaseEntryDetails | ConvertTo-SQLAnywhereConnectionString
-
-    $Results = Invoke-SQLAnywhereSQL -ConnectionString $ConnectionString -SQLCommand $Query -DatabaseEngineClassMapName SQLAnywhere -ConvertFromDataRow
+    $Results = Invoke-WCSSQL -EnvironmentName Production -Query $Query
 
     $ConveyorScaleNumberOfUniqueWeights = $Results | 
     Group-Object -Property Weight | 
@@ -41,7 +37,7 @@ function Update-TervisWCSTervisContentsLabelsAndTervisSalesChannelXRefFileName {
     param (
         [Parameter(Mandatory)]$ComputerName,
         $OldComputerName,
-        [Parameter(Mandatory)]$PasswordID
+        [Parameter(Mandatory)]$EnvironmentName
     )
     $Query = @"
 update TervisContentsLabels
@@ -51,10 +47,7 @@ update TervisSalesChannelXRef
 set filename = replace(filename, '$OldComputerName', '$ComputerName');
 "@
 
-    $SybaseDatabaseEntryDetails = Get-PasswordstateSybaseDatabaseEntryDetails -PasswordID $PasswordID
-    $ConnectionString = $SybaseDatabaseEntryDetails | ConvertTo-SQLAnywhereConnectionString
-
-    Invoke-SQLAnywhereSQL -ConnectionString $ConnectionString -SQLCommand $Query -DatabaseEngineClassMapName SQLAnywhere -ConvertFromDataRow
+    Invoke-WCSSQL -EnvironmentName $EnvironmentName -Query $Query
 }
 
 function Update-WCSTableColumnSearchAndReplaceString {
@@ -124,14 +117,10 @@ function Get-WCSEquipment {
         [Parameter(Mandatory)]$EnvironmentName,
         [ValidateSet("Top","Bottom")]$PrintEngineOrientationRelativeToLabel
     )
-    $WCSEnvironmentState = Get-WCSEnvironmentState -EnvironmentName $EnvironmentName
-    $SybaseDatabaseEntryDetails = Get-PasswordstateSybaseDatabaseEntryDetails -PasswordID $WCSEnvironmentState.SybaseQCUserPasswordEntryID
-    $ConnectionString = $SybaseDatabaseEntryDetails | ConvertTo-SQLAnywhereConnectionString
-
     $Query = @"
 SELECT * FROM "qc"."Equipment"
 "@
-    $WCSEquipment = Invoke-SQLAnywhereSQL -ConnectionString $ConnectionString -SQLCommand $Query -DatabaseEngineClassMapName SQLAnywhere -ConvertFromDataRow
+    $WCSEquipment = Invoke-WCSSQL -EnvironmentName $EnvironmentName -Query $Query
 
     if ($PrintEngineOrientationRelativeToLabel -eq "Top") {
         $WCSEquipment |
@@ -205,7 +194,7 @@ function Invoke-WCSSQL {
     $WCSEnvironmentState = Get-WCSEnvironmentState -EnvironmentName $EnvironmentName
     $SybaseDatabaseEntryDetails = Get-PasswordstateSybaseDatabaseEntryDetails -GUID $WCSEnvironmentState.SybaseQCUserPasswordEntryGUID
     $ConnectionString = $SybaseDatabaseEntryDetails | ConvertTo-SQLAnywhereConnectionString
-    Invoke-SQLAnywhereSQL -ConnectionString $ConnectionString -SQLCommand $Query -DatabaseEngineClassMapName SQLAnywhere -ConvertFromDataRow
+    Invoke-SQLAnywhereSQL -ConnectionString $ConnectionString -SQLCommand $Query -ConvertFromDataRow
 }
 
 function Get-WCSSQLConnectShipShipmentMSNMax {
