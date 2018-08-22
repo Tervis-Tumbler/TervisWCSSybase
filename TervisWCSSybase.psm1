@@ -10,7 +10,8 @@ FROM "qc"."ScaleLog"
 order by ts DESC 
 "@
 
-    $SybaseDatabaseEntryDetails = Get-PasswordstateSybaseDatabaseEntryDetails -PasswordID 3459
+    $WCSEnvironment = Get-WCSEnvironmentState -EnvironmentName Production    
+    $SybaseDatabaseEntryDetails = Get-PasswordstateSybaseDatabaseEntryDetails -GUID $WCSEnvironment.SybaseQCUserPasswordEntryGUID
     $ConnectionString = $SybaseDatabaseEntryDetails | ConvertTo-SQLAnywhereConnectionString
 
     $Results = Invoke-SQLAnywhereSQL -ConnectionString $ConnectionString -SQLCommand $Query -DatabaseEngineClassMapName SQLAnywhere -ConvertFromDataRow
@@ -25,7 +26,7 @@ order by ts DESC
 
 function Get-TervisWCSTervisContentsLabelsAndTervisSalesChannelXRefFileName {
     param (
-        [Parameter(Mandatory)]$PasswordID
+        [Parameter(Mandatory)]$EnvironmentName
     )
     $Query = @"
 select * from  TervisContentsLabels;
@@ -33,10 +34,7 @@ select * from  TervisContentsLabels;
 select * from TervisSalesChannelXRef;
 "@
 
-    $SybaseDatabaseEntryDetails = Get-PasswordstateSybaseDatabaseEntryDetails -PasswordID $PasswordID
-    $ConnectionString = $SybaseDatabaseEntryDetails | ConvertTo-SQLAnywhereConnectionString
-
-    Invoke-SQLAnywhereSQL -ConnectionString $ConnectionString -SQLCommand $Query -DatabaseEngineClassMapName SQLAnywhere -ConvertFromDataRow
+    Invoke-WCSSQL -EnvironmentName $EnvironmentName -Query $Query
 }
 
 function Update-TervisWCSTervisContentsLabelsAndTervisSalesChannelXRefFileName {
@@ -65,30 +63,27 @@ function Update-WCSTableColumnSearchAndReplaceString {
         [Parameter(Mandatory)]$Column,
         [Parameter(Mandatory)]$SearchString,
         [Parameter(Mandatory)]$ReplaceString,
-        [Parameter(Mandatory)]$PasswordID
+        [Parameter(Mandatory)]$EnvironmentName
     )
     $Query = @"
 update $Table
 set $Column = replace($Column, '$SearchString', '$ReplaceString');
 "@
 
-    $SybaseDatabaseEntryDetails = Get-PasswordstateSybaseDatabaseEntryDetails -PasswordID $PasswordID
-    $ConnectionString = $SybaseDatabaseEntryDetails | ConvertTo-SQLAnywhereConnectionString
-
-    Invoke-SQLAnywhereSQL -ConnectionString $ConnectionString -SQLCommand $Query -DatabaseEngineClassMapName SQLAnywhere -ConvertFromDataRow
+    Invoke-WCSSQL -EnvironmentName $EnvironmentName -Query $Query
 }
 
 function Update-TervisWCSReferencesToComputerName {
     param (
         [Parameter(Mandatory)]$ComputerName,
         $OldComputerName,
-        [Parameter(Mandatory)]$PasswordID
+        [Parameter(Mandatory)]$EnvironmentName
     )
 
     $Parameters = @{
         SearchString = $OldComputerName
         ReplaceString = $ComputerName
-        PasswordID = $PasswordID
+        EnvironmentName = $EnvironmentName
     }
 
     Update-WCSTableColumnSearchAndReplaceString -Table TervisContentsLabels -Column filename @Parameters
@@ -102,33 +97,26 @@ function Update-TervisWCSReferencesToComputerName {
 function Set-TervisWCSSystemParameterCS_Server {
     param (
         [Parameter(Mandatory)]$CS_Server,
-        [Parameter(Mandatory)]$PasswordID
+        [Parameter(Mandatory)]$EnvironmentName
     )
     $Query = @"
 update SystemParameters
 set value = '$CS_Server'
 where Name = 'CS_Server';
 "@
-
-    $SybaseDatabaseEntryDetails = Get-PasswordstateSybaseDatabaseEntryDetails -PasswordID $PasswordID
-    $ConnectionString = $SybaseDatabaseEntryDetails | ConvertTo-SQLAnywhereConnectionString
-
-    Invoke-SQLAnywhereSQL -ConnectionString $ConnectionString -SQLCommand $Query -DatabaseEngineClassMapName SQLAnywhere -ConvertFromDataRow    
+    Invoke-WCSSQL -EnvironmentName $EnvironmentName -Query $Query
 }
 
 function Get-TervisWCSSystemParameterCS_Server {
     param (
-        [Parameter(Mandatory)]$PasswordID
+        [Parameter(Mandatory)]$EnvironmentName
     )
     $Query = @"
 select name,value from SystemParameters
 where Name = 'CS_Server';
 "@
 
-    $SybaseDatabaseEntryDetails = Get-PasswordstateSybaseDatabaseEntryDetails -PasswordID $PasswordID
-    $ConnectionString = $SybaseDatabaseEntryDetails | ConvertTo-SQLAnywhereConnectionString
-
-    Invoke-SQLAnywhereSQL -ConnectionString $ConnectionString -SQLCommand $Query -DatabaseEngineClassMapName SQLAnywhere -ConvertFromDataRow    
+    Invoke-WCSSQL -EnvironmentName $EnvironmentName -Query $Query
 }
 
 function Get-WCSEquipment {
@@ -215,7 +203,7 @@ function Invoke-WCSSQL {
         [Parameter(Mandatory)]$Query
     )
     $WCSEnvironmentState = Get-WCSEnvironmentState -EnvironmentName $EnvironmentName
-    $SybaseDatabaseEntryDetails = Get-PasswordstateSybaseDatabaseEntryDetails -PasswordID $WCSEnvironmentState.SybaseQCUserPasswordEntryID
+    $SybaseDatabaseEntryDetails = Get-PasswordstateSybaseDatabaseEntryDetails -GUID $WCSEnvironmentState.SybaseQCUserPasswordEntryGUID
     $ConnectionString = $SybaseDatabaseEntryDetails | ConvertTo-SQLAnywhereConnectionString
     Invoke-SQLAnywhereSQL -ConnectionString $ConnectionString -SQLCommand $Query -DatabaseEngineClassMapName SQLAnywhere -ConvertFromDataRow
 }
@@ -305,6 +293,9 @@ function Invoke-SQLAnywhereProvision {
 }
 
 function Get-WCSShipDate {
+    param (
+        $EnvironmentName
+    )
     if (-not $Script:WCSShipDateQuery) {
         $Script:WCSShipDateQuery = Get-TervisPasswordstatePassword -Guid 0c8717f5-1d26-4394-aa0a-089febd45a1a |
         Select-Object -ExpandProperty Description    
